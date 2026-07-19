@@ -1,0 +1,23 @@
+# dependencies
+/node_modules
+
+# Next.js
+/.next
+/out
+
+# production
+/build
+
+# local environment
+.env*
+!.env.example
+
+# logs and OS files
+npm-debug.log*
+.DS_Store
+
+# TypeScript
+*.tsbuildinfo
+
+# Local design reference
+/stitch-portafolio-ticonsky.zip

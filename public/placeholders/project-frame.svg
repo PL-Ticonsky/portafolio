@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900">
+  <rect width="1440" height="900" fill="#0b0f11"/>
+  <g fill="none" stroke="#849495" opacity=".22">
+    <path d="M80 80h1280v740H80z"/><path d="M80 170h1280M220 80v740"/>
+    <path d="M270 250h800v420H270z" stroke-dasharray="8 12"/>
+    <circle cx="1175" cy="310" r="110"/><path d="M1095 310h160M1175 230v160"/>
+    <path d="M80 80h35M80 80v35M1360 80h-35M1360 80v35M80 820h35M80 820v-35M1360 820h-35M1360 820v-35"/>
+  </g>
+  <g fill="#b9caca" font-family="monospace" letter-spacing="5">
+    <text x="270" y="408" font-size="22">MEDIA SLOT / 01</text>
+    <text x="270" y="452" font-size="16" opacity=".55">NO SOURCE</text>
+  </g>
+</svg>

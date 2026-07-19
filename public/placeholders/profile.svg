@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1100">
+  <rect width="900" height="1100" fill="#0b0f11"/>
+  <g fill="none" stroke="#849495" opacity=".24">
+    <path d="M55 55h790v990H55z"/><path d="M55 170h790M170 55v990"/>
+    <path d="M250 340h400v400H250z" stroke-dasharray="9 13"/>
+    <path d="M250 800h400"/>
+    <path d="M55 55h35M55 55v35M845 55h-35M845 55v35M55 1045h35M55 1045v-35M845 1045h-35M845 1045v-35"/>
+  </g>
+  <g fill="#b9caca" font-family="monospace" letter-spacing="5">
+    <text x="250" y="518" font-size="21">PHOTO SLOT</text>
+    <text x="250" y="562" font-size="16" opacity=".55">NO SOURCE</text>
+  </g>
+</svg>
