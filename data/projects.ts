@@ -56,7 +56,7 @@ export const projects = [
     preview: { type: "unavailable" },
     order: 1,
     node: {
-      scale: 0.19,
+      scale: 0.247,
       position: [-2.65, 1.42, -0.35],
       mobilePosition: [-0.78, 1.95, -0.24],
       rotationSpeed: 0.1,
@@ -86,7 +86,7 @@ export const projects = [
     preview: { type: "unavailable" },
     order: 2,
     node: {
-      scale: 0.24,
+      scale: 0.312,
       position: [2.38, 1.72, -0.45],
       mobilePosition: [0.82, 1.35, -0.28],
       rotationSpeed: 0.075,
@@ -116,7 +116,7 @@ export const projects = [
     preview: { type: "unavailable" },
     order: 3,
     node: {
-      scale: 0.21,
+      scale: 0.273,
       position: [-3.08, -1.73, -0.55],
       mobilePosition: [-0.86, -1.72, -0.24],
       rotationSpeed: 0.078,
@@ -146,7 +146,7 @@ export const projects = [
     preview: { type: "unavailable" },
     order: 4,
     node: {
-      scale: 0.2,
+      scale: 0.26,
       position: [1.7, -2.1, -0.25],
       mobilePosition: [0.58, -2, -0.18],
       rotationSpeed: 0.09,
@@ -176,7 +176,7 @@ export const projects = [
     preview: { type: "unavailable" },
     order: 5,
     node: {
-      scale: 0.22,
+      scale: 0.286,
       position: [3.65, -0.19, -0.55],
       mobilePosition: [0.78, 0.38, -0.22],
       rotationSpeed: 0.082,

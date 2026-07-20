@@ -86,6 +86,7 @@ const depthMaterial = new THREE.MeshBasicMaterial({
 const HolographicNode = memo(function HolographicNode({
   config,
   position,
+  isMobile,
   reducedMotion,
   highlightedId,
   selectedId,
@@ -98,6 +99,7 @@ const HolographicNode = memo(function HolographicNode({
 }: {
   config: HolographicNodeConfig;
   position: [number, number, number];
+  isMobile: boolean;
   reducedMotion: boolean;
   highlightedId: NodeId | null;
   selectedId: NodeId | null;
@@ -114,6 +116,8 @@ const HolographicNode = memo(function HolographicNode({
   const crossMaterial = useRef<THREE.MeshBasicMaterial>(null);
   const glowMaterial = useRef<THREE.MeshBasicMaterial>(null);
   const label = useRef<HTMLDivElement>(null);
+  const touchArmed = useRef(false);
+  const pointerType = useRef("mouse");
   const visualScale = useRef(1);
   const motionRate = useRef(1);
   const floatTime = useRef(0);
@@ -123,6 +127,26 @@ const HolographicNode = memo(function HolographicNode({
   );
   const basePosition = useMemo(() => new THREE.Vector3(...position), [position]);
   const detailPosition = useMemo(() => new THREE.Vector3(0, 0, 0), []);
+  const highlighted = highlightedId === config.id;
+  const panelHorizontal = position[0] >= 0 ? "is-left" : "is-right";
+  const panelVertical =
+    position[0] > 0.1 && Math.abs(position[1]) > 0.5
+      ? "is-below"
+      : "is-above";
+  const panelOffsetX =
+    isMobile && config.id === "ticonsky" ? 44 : isMobile ? 62 : 76;
+  const panelOffsetY = isMobile ? 52 : 58;
+  const panelX = panelHorizontal === "is-left" ? -panelOffsetX : panelOffsetX;
+  const panelY =
+    panelVertical === "is-above" ? -panelOffsetY : panelOffsetY;
+  const nodeRadius =
+    config.id === "ticonsky" ? (isMobile ? 44 : 48) : isMobile ? 32 : 34;
+  const arrowX = panelHorizontal === "is-left" ? -nodeRadius : nodeRadius;
+  const arrowY = panelVertical === "is-above" ? -nodeRadius * 0.42 : nodeRadius * 0.42;
+
+  useEffect(() => {
+    if (!highlighted) touchArmed.current = false;
+  }, [highlighted]);
 
   useLayoutEffect(() => {
     root.current?.position.copy(basePosition);
@@ -134,7 +158,6 @@ const HolographicNode = memo(function HolographicNode({
 
     const progress = transitionProgress.current;
     const selected = selectedId === config.id;
-    const highlighted = highlightedId === config.id;
     const transitionVisible = selected ? 1 : 1 - progress;
     const hoverVisibility =
       phase === "overview" && highlightedId && !highlighted ? 0.5 : 1;
@@ -220,15 +243,28 @@ const HolographicNode = memo(function HolographicNode({
     }
     if (label.current) {
       label.current.style.opacity = String(
-        Math.max(0, (1 - progress * 1.35) * (highlighted ? 1 : 0)),
+        Math.max(0, 1 - progress * 1.35),
       );
     }
     positions.current[config.id].copy(root.current.position);
   });
 
+  const rememberPointerType = (event: ThreeEvent<PointerEvent>) => {
+    pointerType.current = event.pointerType;
+  };
+
   const stopAndSelect = (event: ThreeEvent<MouseEvent>) => {
     if (phase !== "overview") return;
     event.stopPropagation();
+    const isTouch = pointerType.current === "touch";
+
+    if (isTouch && !touchArmed.current) {
+      touchArmed.current = true;
+      onHover(config.id);
+      return;
+    }
+
+    touchArmed.current = false;
     onSelect(config.id);
   };
 
@@ -240,6 +276,7 @@ const HolographicNode = memo(function HolographicNode({
 
   const handlePointerOut = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation();
+    if (event.pointerType === "touch") return;
     onHover(null);
   };
 
@@ -247,6 +284,7 @@ const HolographicNode = memo(function HolographicNode({
     <group
       ref={root}
       position={position}
+      onPointerDown={rememberPointerType}
       onClick={stopAndSelect}
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
@@ -317,16 +355,64 @@ const HolographicNode = memo(function HolographicNode({
       <Html
         center
         position={[0, -config.scale - 0.17, 0]}
-        zIndexRange={[8, 0]}
+        zIndexRange={[20, 10]}
         style={{ pointerEvents: "none" }}
       >
         <div
           ref={label}
-          className="node-label"
+          className={`node-name${highlighted ? " is-highlighted" : ""}`}
           style={{ "--node-color": config.color } as React.CSSProperties}
         >
-          <span aria-hidden="true" />
-          {config.description}
+          <strong>{config.name}</strong>
+        </div>
+      </Html>
+      <Html
+        center
+        position={[0, 0, 0]}
+        zIndexRange={[19, 9]}
+        style={{ pointerEvents: "none" }}
+      >
+        <div
+          className={`node-annotation ${panelHorizontal} ${panelVertical}${
+            config.id === "ticonsky" ? " is-central" : ""
+          }${highlighted ? " is-visible" : ""}`}
+          style={
+            {
+              "--node-color": config.color,
+              "--panel-x": `${panelOffsetX}px`,
+              "--panel-y": `${panelOffsetY}px`,
+            } as React.CSSProperties
+          }
+          aria-hidden={!highlighted}
+        >
+          <svg
+            className="node-annotation-line"
+            width="1"
+            height="1"
+            aria-hidden="true"
+          >
+            <defs>
+              <marker
+                id={`node-arrow-${config.id}`}
+                viewBox="0 0 8 8"
+                refX="7"
+                refY="4"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto"
+              >
+                <path d="M0 0 L8 4 L0 8 Z" fill="currentColor" />
+              </marker>
+            </defs>
+            <line
+              x1={panelX}
+              y1={panelY}
+              x2={arrowX}
+              y2={arrowY}
+              markerEnd={`url(#node-arrow-${config.id})`}
+            />
+          </svg>
+          <p>{config.description}</p>
         </div>
       </Html>
     </group>
@@ -533,6 +619,7 @@ function HolographicGraph(props: SceneProps) {
           key={config.id}
           config={config}
           position={position}
+          isMobile={isMobile}
           positions={positions}
           reducedMotion={reducedMotion}
           highlightedId={highlightedId}

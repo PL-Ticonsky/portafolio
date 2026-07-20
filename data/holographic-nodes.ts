@@ -24,7 +24,7 @@ export const HOLOGRAPHIC_NODES: readonly HolographicNodeConfig[] = [
     name: "TICONSKY",
     description: "Nodo central del archivo visual.",
     color: "#00f5ff",
-    scale: 0.44,
+    scale: 0.495,
     position: [0, 0, 0],
     mobilePosition: [0, -0.1, 0],
     rotationSpeed: 0.07,

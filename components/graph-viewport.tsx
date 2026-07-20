@@ -41,6 +41,14 @@ type QueuedNavigation = {
   updateHistory: boolean;
 };
 
+function UniversePrompt() {
+  return (
+    <p className="universe-prompt" aria-label="Explora mi universo">
+      <span aria-hidden="true">EXPLORA MI UNIVERSO</span>
+    </p>
+  );
+}
+
 export function GraphViewport({
   initialNodeId = null,
 }: {
@@ -318,6 +326,7 @@ export function GraphViewport({
       aria-label="Grafo tridimensional de proyectos"
     >
       <UniverseCanvas {...canvasProps} />
+      <UniversePrompt />
       <div
         ref={graphControls}
         className="graph-a11y-controls"

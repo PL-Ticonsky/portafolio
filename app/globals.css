@@ -217,28 +217,138 @@ p {
   text-transform: uppercase;
 }
 
-.node-label {
+.node-name {
   --node-color: var(--cyan);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: color-mix(in srgb, var(--text-primary) 88%, transparent);
+  color: var(--node-color);
   font: 500 11px/1.2 var(--font-mono);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.13em;
   text-shadow: 0 2px 12px var(--surface-lowest);
-  width: min(280px, 46vw);
-  white-space: normal;
+  white-space: nowrap;
   text-align: center;
+  transition:
+    opacity 180ms ease,
+    text-shadow 180ms ease;
+}
+
+.node-name strong {
+  font: inherit;
+}
+
+.node-name.is-highlighted {
+  text-shadow:
+    0 2px 12px var(--surface-lowest),
+    0 0 10px color-mix(in srgb, var(--node-color) 55%, transparent);
+}
+
+.node-annotation {
+  --node-color: var(--cyan);
+  --panel-x: 76px;
+  --panel-y: 58px;
+  position: relative;
+  width: 1px;
+  height: 1px;
+  color: var(--node-color);
+  opacity: 0;
+  pointer-events: none;
   transition: opacity 180ms ease;
 }
 
-.node-label span {
+.node-annotation p {
+  position: absolute;
+  width: min(220px, calc(50vw - 52px));
+  padding: 10px 12px;
+  margin: 0;
+  border: 0.5px solid color-mix(in srgb, var(--node-color) 78%, transparent);
+  background: color-mix(in srgb, var(--surface-lowest) 90%, transparent);
+  box-shadow:
+    inset 0 0 18px color-mix(in srgb, var(--node-color) 5%, transparent),
+    0 8px 24px color-mix(in srgb, var(--surface-lowest) 65%, transparent);
+  color: var(--text-secondary);
+  font: 500 9px/1.45 var(--font-mono);
+  letter-spacing: 0.045em;
+  text-align: left;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  transform: translateY(4px);
+  transition:
+    opacity 180ms ease,
+    transform 220ms ease;
+}
+
+.node-annotation.is-left p {
+  right: var(--panel-x);
+}
+
+.node-annotation.is-right p {
+  left: var(--panel-x);
+}
+
+.node-annotation.is-above p {
+  bottom: var(--panel-y);
+}
+
+.node-annotation.is-below p {
+  top: var(--panel-y);
+}
+
+.node-annotation.is-visible {
+  opacity: 1;
+}
+
+.node-annotation.is-visible p {
+  transform: translateY(0);
+}
+
+.node-annotation-line {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  color: color-mix(in srgb, var(--node-color) 76%, transparent);
+}
+
+.node-annotation-line line {
+  stroke: currentColor;
+  stroke-width: 0.75;
+  vector-effect: non-scaling-stroke;
+}
+
+.universe-prompt {
+  --prompt-width: calc(19ch + 3.04em);
+  position: fixed;
+  bottom: max(28px, env(safe-area-inset-bottom));
+  left: 50%;
+  z-index: 3;
+  margin: 0;
+  transform: translateX(-50%);
+  color: color-mix(in srgb, var(--cyan-bright) 62%, var(--text-secondary));
+  font: 500 11px/1.4 var(--font-mono);
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.universe-prompt span {
   display: block;
-  width: 8px;
-  height: 1px;
-  background: var(--node-color);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--node-color) 70%, transparent);
-  opacity: 0.64;
+  width: 0;
+  overflow: hidden;
+  border-right: 1px solid currentColor;
+  animation:
+    universe-typing 1.615s steps(19, end) 750ms forwards,
+    universe-cursor 780ms steps(1, end) 750ms infinite;
+}
+
+@keyframes universe-typing {
+  to {
+    width: var(--prompt-width);
+  }
+}
+
+@keyframes universe-cursor {
+  50% {
+    border-right-color: transparent;
+  }
 }
 
 /* Detail shell */
@@ -1491,14 +1601,26 @@ p {
     --section-space: 72px;
   }
 
-  .node-label {
-    gap: 5px;
+  .node-name {
     font-size: 9.5px;
     letter-spacing: 0.09em;
   }
 
-  .node-label span {
-    width: 6px;
+  .node-annotation p {
+    width: min(170px, calc(50vw - 34px));
+    padding: 8px 10px;
+    font-size: 8px;
+    line-height: 1.4;
+  }
+
+  .node-annotation.is-central p {
+    width: min(140px, calc(50vw - 34px));
+  }
+
+  .universe-prompt {
+    bottom: max(20px, env(safe-area-inset-bottom));
+    font-size: 9px;
+    letter-spacing: 0.13em;
   }
 
   .detail-header {
@@ -1790,6 +1912,11 @@ p {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+
+  .universe-prompt span {
+    width: var(--prompt-width);
+    animation: universe-cursor 780ms steps(1, end) infinite !important;
+  }
 }
 
 @media (forced-colors: active) {
@@ -1803,9 +1930,9 @@ p {
     border: 1px solid CanvasText;
   }
 
-  .node-label span,
+  .node-name,
   .preview-unavailable > span {
-    background: CanvasText;
+    color: CanvasText;
     box-shadow: none;
   }
 }
