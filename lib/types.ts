@@ -5,40 +5,53 @@ export type ProjectPreview = {
   alt?: string;
 };
 
-export type ProjectImage = {
+export type ProjectMedia = {
+  type: "image" | "video";
   src: string;
   alt: string;
   caption?: string;
+  poster?: string;
 };
 
-export type ProjectId =
-  | "museum-heist"
-  | "sembraalas"
-  | "sga"
-  | "tinta"
-  | "reservaciones";
+export type ProjectSectionContent = {
+  title: string;
+  description: string;
+};
+
+export type ProjectNode = {
+  position: [number, number, number];
+  mobilePosition: [number, number, number];
+  scale: number;
+  rotationAxis: [number, number, number];
+  rotationSpeed: number;
+  floatAmplitude: number;
+  floatSpeed: number;
+  floatPhase: number;
+};
 
 export type Project = {
-  id: ProjectId;
-  slug: ProjectId;
+  id: string;
+  slug: string;
   name: string;
-  shortDescription?: string;
-  fullDescription?: string;
-  problem?: string;
-  solution?: string;
-  architecture?: string;
-  role?: string;
-  contribution?: string;
+  archiveNumber: string;
+  shortDescription: string;
+  context: ProjectSectionContent;
+  problem: ProjectSectionContent;
+  solution: ProjectSectionContent;
+  contribution: ProjectSectionContent;
+  role: string;
+  type: string;
   result?: string;
-  status?: string;
-  year?: string;
+  status: string;
+  year: string;
   color: string;
   technologies: string[];
-  images: ProjectImage[];
+  media: ProjectMedia[];
   preview: ProjectPreview;
   repositoryUrl?: string;
   liveUrl?: string;
   order: number;
+  node: ProjectNode;
 };
 
 export type PersonalLink = {

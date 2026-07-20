@@ -46,20 +46,7 @@ export function ProjectDetail({
 }) {
   const previous = projects[(index - 1 + projects.length) % projects.length];
   const next = projects[(index + 1) % projects.length];
-  const projectNumber = String(index + 1).padStart(2, "0");
-  const hasEditorialContent = Boolean(
-    project.fullDescription ||
-      project.problem ||
-      project.solution ||
-      project.architecture ||
-      project.contribution ||
-      project.technologies.length > 0 ||
-      project.result ||
-      project.preview.type !== "unavailable",
-  );
-  const archiveDescription =
-    project.shortDescription ??
-    `Registro visual del nodo ${project.name} dentro del archivo de proyectos Ticonsky.`;
+  const projectNumber = project.archiveNumber;
 
   const navigate = (id: string) => {
     if (isNodeId(id)) onNavigate(id);
@@ -67,7 +54,7 @@ export function ProjectDetail({
 
   return (
     <article
-      className={`project-detail${hasEditorialContent ? " has-case-study" : " is-archive-only"}`}
+      className="project-detail has-case-study"
       style={{ "--detail-accent": project.color } as React.CSSProperties}
     >
       <section className="project-hero">
@@ -87,16 +74,12 @@ export function ProjectDetail({
           >
             {project.name}
           </h1>
-          <p
-            className={`project-short${project.shortDescription ? "" : " is-archive-description"}`}
-          >
-            {archiveDescription}
-          </p>
+          <p className="project-short">{project.shortDescription}</p>
 
           <dl className="project-facts">
             <div>
               <dt>TIPO</dt>
-              <dd>NODO DE PROYECTO</dd>
+              <dd>{project.type}</dd>
             </div>
             <div>
               <dt>IDENTIFICADOR</dt>
@@ -108,30 +91,18 @@ export function ProjectDetail({
                 {projectNumber} / {String(projects.length).padStart(2, "0")}
               </dd>
             </div>
-            {project.status && (
-              <div>
-                <dt>ESTADO</dt>
-                <dd>{project.status}</dd>
-              </div>
-            )}
-            {project.year && (
-              <div>
-                <dt>AÑO</dt>
-                <dd>{project.year}</dd>
-              </div>
-            )}
-            {project.role && (
-              <div>
-                <dt>ROL</dt>
-                <dd>{project.role}</dd>
-              </div>
-            )}
-            {!project.status && !project.year && !project.role && (
-              <div>
-                <dt>MEDIA</dt>
-                <dd>{String(project.images.length).padStart(2, "0")} RANURAS</dd>
-              </div>
-            )}
+            <div>
+              <dt>ESTADO</dt>
+              <dd>{project.status}</dd>
+            </div>
+            <div>
+              <dt>AÑO</dt>
+              <dd>{project.year}</dd>
+            </div>
+            <div>
+              <dt>ROL</dt>
+              <dd>{project.role}</dd>
+            </div>
           </dl>
 
           {project.technologies.length > 0 && (
@@ -143,97 +114,80 @@ export function ProjectDetail({
           )}
         </div>
 
-        <ProjectCarousel images={project.images} projectName={project.name} />
+        <ProjectCarousel media={project.media} projectName={project.name} />
       </section>
 
-      {hasEditorialContent && (
-        <div className="case-study">
-          {(project.fullDescription || project.problem) && (
-            <div className="case-pair">
-              {project.fullDescription && (
-                <EditorialSection
-                  number="01"
-                  label="CONTEXTO"
-                  title="El proyecto"
-                  className="case-section-lead"
-                >
-                  <p>{project.fullDescription}</p>
-                </EditorialSection>
-              )}
+      <div className="case-study">
+        <div className="case-pair">
+          <EditorialSection
+            number="01"
+            label="CONTEXTO"
+            title={project.context.title}
+            className="case-section-lead"
+          >
+            <p>{project.context.description}</p>
+          </EditorialSection>
 
-              {project.problem && (
-                <EditorialSection
-                  number="02"
-                  label="PROBLEMA"
-                  title="Punto de partida"
-                >
-                  <p>{project.problem}</p>
-                </EditorialSection>
-              )}
-            </div>
-          )}
-
-          {project.solution && (
-            <EditorialSection number="03" label="SOLUCIÓN" title="Enfoque">
-              <p>{project.solution}</p>
-            </EditorialSection>
-          )}
-
-          {project.architecture && (
-            <EditorialSection
-              number="04"
-              label="ARQUITECTURA"
-              title="Sistema"
-              className="case-section-blueprint"
-            >
-              <p>{project.architecture}</p>
-            </EditorialSection>
-          )}
-
-          {(project.contribution || project.technologies.length > 0) && (
-            <div className="case-pair">
-              {project.contribution && (
-                <EditorialSection
-                  number="05"
-                  label="CONTRIBUCIÓN"
-                  title="Participación"
-                >
-                  <p>{project.contribution}</p>
-                </EditorialSection>
-              )}
-
-              {project.technologies.length > 0 && (
-                <EditorialSection
-                  number="06"
-                  label="TECNOLOGÍAS"
-                  title="Herramientas"
-                >
-                  <ul className="technology-matrix">
-                    {project.technologies.map((technology, technologyIndex) => (
-                      <li key={technology}>
-                        <span>
-                          {String(technologyIndex + 1).padStart(2, "0")}
-                        </span>
-                        {technology}
-                      </li>
-                    ))}
-                  </ul>
-                </EditorialSection>
-              )}
-            </div>
-          )}
-
-          {project.result && (
-            <EditorialSection number="07" label="RESULTADO" title="Resultado">
-              <p>{project.result}</p>
-            </EditorialSection>
-          )}
-
-          {project.preview.type !== "unavailable" && (
-            <ProjectPreview project={project} />
-          )}
+          <EditorialSection
+            number="02"
+            label="PROBLEMA"
+            title={project.problem.title}
+          >
+            <p>{project.problem.description}</p>
+          </EditorialSection>
         </div>
-      )}
+
+        <EditorialSection
+          number="03"
+          label="SOLUCIÓN"
+          title={project.solution.title}
+        >
+          <p>{project.solution.description}</p>
+        </EditorialSection>
+
+        <div className="case-pair">
+          <EditorialSection
+            number="05"
+            label="CONTRIBUCIÓN"
+            title={project.contribution.title}
+          >
+            <p>{project.contribution.description}</p>
+          </EditorialSection>
+
+          <EditorialSection
+            number="06"
+            label="TECNOLOGÍAS"
+            title="Herramientas"
+          >
+            {project.technologies.length > 0 ? (
+              <ul className="technology-matrix">
+                {project.technologies.map((technology, technologyIndex) => (
+                  <li key={technology}>
+                    <span>
+                      {String(technologyIndex + 1).padStart(2, "0")}
+                    </span>
+                    {technology}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="editorial-pending">
+                Tecnologías pendientes de documentación en el archivo del proyecto.
+              </p>
+            )}
+          </EditorialSection>
+        </div>
+
+        {project.result && (
+          <EditorialSection number="07" label="RESULTADO" title="Resultado">
+            <p>{project.result}</p>
+          </EditorialSection>
+        )}
+
+        {project.preview.type !== "unavailable" && (
+          <ProjectPreview project={project} />
+        )}
+      </div>
 
       {(project.repositoryUrl || project.liveUrl) && (
         <nav className="project-links" aria-label="Enlaces externos del proyecto">

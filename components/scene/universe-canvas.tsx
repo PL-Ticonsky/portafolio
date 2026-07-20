@@ -220,7 +220,7 @@ const HolographicNode = memo(function HolographicNode({
     }
     if (label.current) {
       label.current.style.opacity = String(
-        Math.max(0, (1 - progress * 1.35) * (highlighted ? 1 : 0.7)),
+        Math.max(0, (1 - progress * 1.35) * (highlighted ? 1 : 0)),
       );
     }
     positions.current[config.id].copy(root.current.position);
@@ -326,7 +326,7 @@ const HolographicNode = memo(function HolographicNode({
           style={{ "--node-color": config.color } as React.CSSProperties}
         >
           <span aria-hidden="true" />
-          {config.name}
+          {config.description}
         </div>
       </Html>
     </group>

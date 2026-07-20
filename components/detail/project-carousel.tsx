@@ -3,27 +3,27 @@
 import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useRef, useState } from "react";
-import type { ProjectImage } from "@/lib/types";
+import type { ProjectMedia } from "@/lib/types";
 
 export function ProjectCarousel({
-  images,
+  media,
   projectName,
 }: {
-  images: ProjectImage[];
+  media: ProjectMedia[];
   projectName: string;
 }) {
   const reducedMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
   const touchStart = useRef<number | null>(null);
-  const total = images.length;
-  const image = images[index];
+  const total = media.length;
+  const item = media[index];
 
   const move = (direction: -1 | 1) => {
     if (total < 2) return;
     setIndex((current) => (current + direction + total) % total);
   };
 
-  if (!image) {
+  if (!item) {
     return (
       <section
         className="project-carousel is-empty"
@@ -76,22 +76,33 @@ export function ProjectCarousel({
         </span>
         <AnimatePresence mode="wait" initial={false}>
           <motion.figure
-            key={`${image.src}-${index}`}
+            key={`${item.src}-${index}`}
             initial={reducedMotion ? false : { opacity: 0, x: 16 }}
             animate={{ opacity: 1, x: 0 }}
             exit={reducedMotion ? { opacity: 0 } : { opacity: 0, x: -16 }}
             transition={{ duration: reducedMotion ? 0.08 : 0.24 }}
           >
-            <div className="carousel-image">
-              <Image
-                src={image.src}
-                alt={image.alt}
-                fill
-                sizes="(max-width: 767px) calc(100vw - 40px), 56vw"
-                priority={index === 0}
-              />
+            <div className="carousel-media">
+              {item.type === "video" ? (
+                <video
+                  src={item.src}
+                  poster={item.poster}
+                  aria-label={item.alt}
+                  controls
+                  playsInline
+                  preload="metadata"
+                />
+              ) : (
+                <Image
+                  src={item.src}
+                  alt={item.alt}
+                  fill
+                  sizes="(max-width: 767px) calc(100vw - 40px), 56vw"
+                  priority={index === 0}
+                />
+              )}
             </div>
-            {image.caption && <figcaption>{image.caption}</figcaption>}
+            {item.caption && <figcaption>{item.caption}</figcaption>}
           </motion.figure>
         </AnimatePresence>
 
@@ -118,16 +129,34 @@ export function ProjectCarousel({
             MEDIA INDEX
           </span>
           <div className="carousel-thumbnails" aria-label="Seleccionar imagen">
-            {images.map((item, itemIndex) => (
+            {media.map((thumbnail, itemIndex) => (
               <button
                 type="button"
-                key={`${item.src}-${itemIndex}`}
+                key={`${thumbnail.src}-${itemIndex}`}
                 className={itemIndex === index ? "active" : ""}
                 onClick={() => setIndex(itemIndex)}
-                aria-label={`Mostrar imagen ${itemIndex + 1} de ${total}`}
+                aria-label={`Mostrar medio ${itemIndex + 1} de ${total}: ${thumbnail.alt}`}
                 aria-current={itemIndex === index ? "true" : undefined}
               >
-                <Image src={item.src} alt="" fill sizes="96px" loading="lazy" />
+                {thumbnail.type === "image" ? (
+                  <Image
+                    src={thumbnail.src}
+                    alt=""
+                    fill
+                    sizes="96px"
+                    loading="lazy"
+                  />
+                ) : thumbnail.poster ? (
+                  <Image
+                    src={thumbnail.poster}
+                    alt=""
+                    fill
+                    sizes="96px"
+                    loading="lazy"
+                  />
+                ) : (
+                  <span className="video-thumbnail" aria-hidden="true">VIDEO</span>
+                )}
                 <span>{String(itemIndex + 1).padStart(2, "0")}</span>
               </button>
             ))}

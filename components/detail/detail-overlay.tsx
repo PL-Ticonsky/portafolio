@@ -27,7 +27,7 @@ export function DetailOverlay({
   const title = isProfile ? "TICONSKY / PERFIL" : "TICONSKY / ARCHIVO";
   const context = isProfile
     ? "NODO CENTRAL / 00"
-    : `ARCHIVO DE PROYECTOS / ${String(projectIndex + 1).padStart(2, "0")}`;
+    : `ARCHIVO DE PROYECTOS / ${project?.archiveNumber ?? "00"}`;
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {

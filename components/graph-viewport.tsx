@@ -10,6 +10,7 @@ import {
   nodePath,
   type NodeId,
 } from "@/data/holographic-nodes";
+import { getProjectBySlug } from "@/data/projects";
 import type {
   GraphPhase,
   SceneMotionState,
@@ -29,8 +30,10 @@ const UniverseCanvas = dynamic(
 function nodeFromPathname(pathname: string): NodeId | null {
   if (pathname === "/ticonsky" || pathname === "/ticonsky/") return "ticonsky";
   const match = pathname.match(/^\/proyectos\/([^/]+)\/?$/);
-  const candidate = match?.[1] ?? null;
-  return isNodeId(candidate) ? candidate : null;
+  const slug = match?.[1];
+  if (!slug) return null;
+  const project = getProjectBySlug(decodeURIComponent(slug));
+  return project && isNodeId(project.id) ? project.id : null;
 }
 
 type QueuedNavigation = {
@@ -325,7 +328,7 @@ export function GraphViewport({
             key={node.id}
             data-node-id={node.id}
             type="button"
-            aria-label={`Abrir nodo ${node.name}`}
+            aria-label={`Abrir nodo ${node.name}: ${node.description}`}
             disabled={phase !== "overview"}
             onFocus={() => setFocusedId(node.id)}
             onBlur={() => setFocusedId(null)}
