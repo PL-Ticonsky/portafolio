@@ -71,6 +71,9 @@ export function ProjectCarousel({
       }}
     >
       <div className="carousel-stage">
+        <span className="carousel-reference" aria-hidden="true">
+          MEDIA / {projectName}
+        </span>
         <AnimatePresence mode="wait" initial={false}>
           <motion.figure
             key={`${image.src}-${index}`}
@@ -106,23 +109,29 @@ export function ProjectCarousel({
             </button>
           </div>
         )}
+        <span className="carousel-corner carousel-corner-bottom" aria-hidden="true" />
       </div>
 
       {total > 1 && (
-        <div className="carousel-thumbnails" aria-label="Seleccionar imagen">
-          {images.map((item, itemIndex) => (
-            <button
-              type="button"
-              key={`${item.src}-${itemIndex}`}
-              className={itemIndex === index ? "active" : ""}
-              onClick={() => setIndex(itemIndex)}
-              aria-label={`Mostrar imagen ${itemIndex + 1} de ${total}`}
-              aria-current={itemIndex === index ? "true" : undefined}
-            >
-              <Image src={item.src} alt="" fill sizes="96px" loading="lazy" />
-              <span>{String(itemIndex + 1).padStart(2, "0")}</span>
-            </button>
-          ))}
+        <div className="carousel-index">
+          <span className="carousel-index-label" aria-hidden="true">
+            MEDIA INDEX
+          </span>
+          <div className="carousel-thumbnails" aria-label="Seleccionar imagen">
+            {images.map((item, itemIndex) => (
+              <button
+                type="button"
+                key={`${item.src}-${itemIndex}`}
+                className={itemIndex === index ? "active" : ""}
+                onClick={() => setIndex(itemIndex)}
+                aria-label={`Mostrar imagen ${itemIndex + 1} de ${total}`}
+                aria-current={itemIndex === index ? "true" : undefined}
+              >
+                <Image src={item.src} alt="" fill sizes="96px" loading="lazy" />
+                <span>{String(itemIndex + 1).padStart(2, "0")}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </section>

@@ -84,18 +84,52 @@ export function ProfileDetail({
       className="profile-detail"
       style={{ "--detail-accent": "#00f5ff" } as React.CSSProperties}
     >
+      <aside className="profile-rail" aria-hidden="true">
+        <span className="profile-rail-name">TICONSKY // CENTRAL NODE</span>
+        <ol>
+          <li className="is-active">
+            <span>00</span>
+            <small>PERFIL</small>
+          </li>
+          {hasKnowledge && (
+            <li>
+              <span>02</span>
+              <small>SISTEMA</small>
+            </li>
+          )}
+          <li>
+            <span>05</span>
+            <small>ARCHIVO</small>
+          </li>
+          {hasContact && (
+            <li>
+              <span>NET</span>
+              <small>CONTACTO</small>
+            </li>
+          )}
+        </ol>
+      </aside>
+
       <section className="profile-hero">
         <div className="profile-copy">
           <p className="detail-kicker">PERFIL / NODO CENTRAL</p>
           <h1 id="detail-title" data-detail-heading tabIndex={-1}>
             {profile.fullName ?? profile.alias}
           </h1>
-          {profile.fullName && <p className="profile-alias">{profile.alias}</p>}
+          <div className="profile-name-rule" aria-hidden="true">
+            <span>{profile.fullName ? profile.alias : "CENTRAL NODE / 00"}</span>
+            <i />
+          </div>
           {profile.professionalTitle && (
             <p className="profile-title">{profile.professionalTitle}</p>
           )}
           {profile.description && (
             <p className="profile-description">{profile.description}</p>
+          )}
+          {!profile.professionalTitle && !profile.description && (
+            <p className="profile-system-note">
+              Nodo central del archivo visual y acceso a proyectos seleccionados.
+            </p>
           )}
           {profile.location && (
             <p className="profile-location">
@@ -130,6 +164,7 @@ export function ProfileDetail({
           />
           <span className="frame-corner frame-corner-top" aria-hidden="true" />
           <span className="frame-corner frame-corner-bottom" aria-hidden="true" />
+          <figcaption aria-hidden="true">PORTRAIT / CENTRAL NODE</figcaption>
         </figure>
       </section>
 
@@ -245,6 +280,10 @@ export function ProfileDetail({
           </ProfileSection>
         )}
       </div>
+      <footer className="profile-endcap" aria-hidden="true">
+        <span>END / PROFILE</span>
+        <span>TICONSKY / CENTRAL NODE</span>
+      </footer>
     </article>
   );
 }

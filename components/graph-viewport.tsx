@@ -10,7 +10,10 @@ import {
   nodePath,
   type NodeId,
 } from "@/data/holographic-nodes";
-import type { GraphPhase } from "@/components/scene/universe-canvas";
+import type {
+  GraphPhase,
+  SceneMotionState,
+} from "@/components/scene/universe-canvas";
 
 const UniverseCanvas = dynamic(
   () =>
@@ -59,6 +62,16 @@ export function GraphViewport({
   const phaseRef = useRef<GraphPhase>(
     initialNodeId ? "detail" : "overview",
   );
+  const motionState: SceneMotionState =
+    phase === "entering"
+      ? "transitioning"
+      : phase === "exiting"
+        ? "returning"
+        : phase === "detail"
+          ? "detail"
+          : hoveredId || focusedId
+            ? "hovered"
+            : "idle";
 
   const updateSelectedId = useCallback((id: NodeId | null) => {
     selectedIdRef.current = id;
@@ -276,6 +289,7 @@ export function GraphViewport({
       focusedId,
       selectedId,
       phase,
+      motionState,
       onHover: setHoveredId,
       onSelect: beginSelection,
       onTransitionComplete: handleTransitionComplete,
@@ -289,12 +303,14 @@ export function GraphViewport({
       phase,
       reducedMotion,
       selectedId,
+      motionState,
     ],
   );
 
   return (
     <div
       className={`graph-viewport${hoveredId ? " is-hovering" : ""}`}
+      data-motion-state={motionState}
       role={phase === "detail" ? undefined : "main"}
       aria-label="Grafo tridimensional de proyectos"
     >

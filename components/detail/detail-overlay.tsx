@@ -23,7 +23,11 @@ export function DetailOverlay({
   const projectIndex = projects.findIndex((project) => project.id === nodeId);
   const project = projectIndex >= 0 ? projects[projectIndex] : null;
   const node = HOLOGRAPHIC_NODES.find((item) => item.id === nodeId);
-  const title = nodeId === "ticonsky" ? "TICONSKY / PERFIL" : "TICONSKY / ARCHIVO";
+  const isProfile = nodeId === "ticonsky";
+  const title = isProfile ? "TICONSKY / PERFIL" : "TICONSKY / ARCHIVO";
+  const context = isProfile
+    ? "NODO CENTRAL / 00"
+    : `ARCHIVO DE PROYECTOS / ${String(projectIndex + 1).padStart(2, "0")}`;
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -47,21 +51,25 @@ export function DetailOverlay({
       animate={{ opacity: 1, y: 0 }}
       exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
       transition={{
-        duration: reducedMotion ? 0.12 : 0.48,
-        ease: [0.22, 1, 0.36, 1],
+        duration: reducedMotion ? 0.12 : 0.72,
+        ease: [0.16, 1, 0.3, 1],
       }}
     >
       <div className="detail-backdrop" aria-hidden="true" />
       <header className="detail-header">
-        <button type="button" onClick={onBack}>
-          <span aria-hidden="true">←</span> VOLVER AL GRAFO
-        </button>
-        <span className="detail-coordinate" aria-hidden="true">
-          {title}
-        </span>
+        <div className="detail-header-start">
+          <button type="button" onClick={onBack}>
+            <span aria-hidden="true">←</span> VOLVER AL GRAFO
+          </button>
+          <span className="detail-header-rule" aria-hidden="true" />
+        </div>
+        <div className="detail-header-identity" aria-hidden="true">
+          <span className="detail-header-context">{context}</span>
+          <span className="detail-coordinate">{title}</span>
+        </div>
       </header>
       <main className="detail-scroll">
-        {nodeId === "ticonsky" ? (
+        {isProfile ? (
           <ProfileDetail onNavigate={onNavigate} />
         ) : project ? (
           <ProjectDetail

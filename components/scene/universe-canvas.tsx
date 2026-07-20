@@ -23,6 +23,21 @@ import {
 } from "@/data/holographic-nodes";
 
 export type GraphPhase = "overview" | "entering" | "detail" | "exiting";
+export type SceneMotionState =
+  | "idle"
+  | "hovered"
+  | "transitioning"
+  | "detail"
+  | "returning";
+
+export const SCENE_MOTION = {
+  transitionSeconds: 2.2,
+  rotationRate: {
+    idle: 1,
+    hovered: 0.025,
+    detail: 0.1,
+  },
+} as const;
 
 type SceneProps = {
   active: boolean;
@@ -31,6 +46,7 @@ type SceneProps = {
   focusedId: NodeId | null;
   selectedId: NodeId | null;
   phase: GraphPhase;
+  motionState: SceneMotionState;
   onHover: (id: NodeId | null) => void;
   onSelect: (id: NodeId) => void;
   onTransitionComplete: (phase: "overview" | "detail") => void;
@@ -40,7 +56,7 @@ type PositionStore = React.MutableRefObject<Record<NodeId, THREE.Vector3>>;
 type ProgressStore = React.MutableRefObject<number>;
 
 function createTriangulatedSphere() {
-  const geometry = new THREE.IcosahedronGeometry(1, 4);
+  const geometry = new THREE.IcosahedronGeometry(1, 2);
   const positions = geometry.attributes.position;
 
   for (let index = 0; index < positions.count; index += 1) {
@@ -49,8 +65,8 @@ function createTriangulatedSphere() {
     const z = positions.getZ(index);
     const irregularity =
       1 +
-      Math.sin(x * 13.7 + y * 7.1) * 0.012 +
-      Math.sin(z * 17.3 - x * 5.4) * 0.009;
+      Math.sin(x * 13.7 + y * 7.1) * 0.016 +
+      Math.sin(z * 17.3 - x * 5.4) * 0.012;
     positions.setXYZ(index, x * irregularity, y * irregularity, z * irregularity);
   }
 
@@ -74,6 +90,7 @@ const HolographicNode = memo(function HolographicNode({
   highlightedId,
   selectedId,
   phase,
+  motionState,
   positions,
   transitionProgress,
   onHover,
@@ -85,6 +102,7 @@ const HolographicNode = memo(function HolographicNode({
   highlightedId: NodeId | null;
   selectedId: NodeId | null;
   phase: GraphPhase;
+  motionState: SceneMotionState;
   positions: PositionStore;
   transitionProgress: ProgressStore;
   onHover: (id: NodeId | null) => void;
@@ -98,6 +116,7 @@ const HolographicNode = memo(function HolographicNode({
   const label = useRef<HTMLDivElement>(null);
   const visualScale = useRef(1);
   const motionRate = useRef(1);
+  const floatTime = useRef(0);
   const axis = useMemo(
     () => new THREE.Vector3(...config.rotationAxis).normalize(),
     [config.rotationAxis],
@@ -110,7 +129,7 @@ const HolographicNode = memo(function HolographicNode({
     positions.current[config.id].copy(basePosition);
   }, [basePosition, config.id, positions]);
 
-  useFrame(({ clock }, delta) => {
+  useFrame((_, delta) => {
     if (!root.current || !meshLayers.current) return;
 
     const progress = transitionProgress.current;
@@ -121,12 +140,35 @@ const HolographicNode = memo(function HolographicNode({
       phase === "overview" && highlightedId && !highlighted ? 0.5 : 1;
     const visibility = transitionVisible * hoverVisibility;
     const emphasis = highlighted ? 1.28 : selected ? 1.2 : 1;
-    const detailRate = reducedMotion ? 0.01 : 0.12;
-    const targetRate = selected
-      ? THREE.MathUtils.lerp(1, detailRate, progress)
-      : highlightedId && phase === "overview"
-        ? 0.22
-        : 1;
+    const easedProgress = cinematicEase(progress);
+    const detailRate = reducedMotion ? 0 : SCENE_MOTION.rotationRate.detail;
+    let targetRate: number;
+
+    switch (motionState) {
+      case "hovered":
+        targetRate = highlighted
+          ? SCENE_MOTION.rotationRate.hovered
+          : 0.08;
+        break;
+      case "transitioning":
+      case "returning":
+        targetRate = selected
+          ? THREE.MathUtils.lerp(
+              SCENE_MOTION.rotationRate.idle,
+              detailRate,
+              easedProgress,
+            )
+          : THREE.MathUtils.lerp(0.72, 0.28, easedProgress);
+        break;
+      case "detail":
+        targetRate = detailRate;
+        break;
+      case "idle":
+      default:
+        targetRate = SCENE_MOTION.rotationRate.idle;
+        break;
+    }
+
     const targetScale = highlighted ? 1.045 : 1;
 
     motionRate.current = THREE.MathUtils.damp(
@@ -147,19 +189,16 @@ const HolographicNode = memo(function HolographicNode({
         axis,
         delta * config.rotationSpeed * motionRate.current,
       );
+      floatTime.current += delta * config.floatSpeed * motionRate.current;
       root.current.position.y =
         basePosition.y +
-        Math.sin(clock.elapsedTime * config.floatSpeed + config.floatPhase) *
-          config.floatAmplitude *
-          motionRate.current;
+        Math.sin(floatTime.current + config.floatPhase) *
+          config.floatAmplitude;
       root.current.position.x =
         basePosition.x +
-        Math.cos(
-          clock.elapsedTime * config.floatSpeed * 0.72 + config.floatPhase,
-        ) *
+        Math.cos(floatTime.current * 0.72 + config.floatPhase) *
           config.floatAmplitude *
-          0.28 *
-          motionRate.current;
+          0.28;
     } else if (selected) {
       root.current.position.lerpVectors(basePosition, detailPosition, progress);
     } else {
@@ -170,14 +209,14 @@ const HolographicNode = memo(function HolographicNode({
       reducedMotion && selected ? THREE.MathUtils.lerp(1, 24, progress) : 1;
     root.current.scale.setScalar(visualScale.current * reducedDetailScale);
     if (primaryMaterial.current) {
-      primaryMaterial.current.opacity = 0.31 * visibility * emphasis;
+      primaryMaterial.current.opacity = 0.21 * visibility * emphasis;
     }
     if (crossMaterial.current) {
-      crossMaterial.current.opacity = 0.115 * visibility * emphasis;
+      crossMaterial.current.opacity = 0.055 * visibility * emphasis;
     }
     if (glowMaterial.current) {
       glowMaterial.current.opacity =
-        0.048 * visibility * (highlighted ? 2.4 : selected ? 2 : 1);
+        0.018 * visibility * (highlighted ? 2.8 : selected ? 2.2 : 1);
     }
     if (label.current) {
       label.current.style.opacity = String(
@@ -225,7 +264,7 @@ const HolographicNode = memo(function HolographicNode({
             color={config.color}
             wireframe
             transparent
-            opacity={0.31}
+            opacity={0.21}
             depthTest
             depthWrite={false}
             side={THREE.DoubleSide}
@@ -241,7 +280,7 @@ const HolographicNode = memo(function HolographicNode({
             color={config.color}
             wireframe
             transparent
-            opacity={0.115}
+            opacity={0.055}
             depthTest
             depthWrite={false}
             side={THREE.DoubleSide}
@@ -257,16 +296,27 @@ const HolographicNode = memo(function HolographicNode({
             color={config.color}
             wireframe
             transparent
-            opacity={0.048}
+            opacity={0.018}
             depthTest
             depthWrite={false}
             side={THREE.DoubleSide}
           />
         </mesh>
       </group>
+      <mesh
+        geometry={sharedGeometry}
+        scale={Math.max(config.scale * 1.3, config.id === "ticonsky" ? 0.55 : 0.34)}
+      >
+        <meshBasicMaterial
+          transparent
+          opacity={0}
+          depthWrite={false}
+          colorWrite={false}
+        />
+      </mesh>
       <Html
         center
-        position={[0, -config.scale - 0.34, 0]}
+        position={[0, -config.scale - 0.17, 0]}
         zIndexRange={[8, 0]}
         style={{ pointerEvents: "none" }}
       >
@@ -323,7 +373,7 @@ function Connection({
     geometry.computeBoundingSphere();
     if (material.current) {
       material.current.opacity =
-        0.23 * hoverFade * (1 - transitionProgress.current);
+        0.1 * hoverFade * (1 - transitionProgress.current);
     }
   });
 
@@ -337,7 +387,7 @@ function Connection({
         ref={material}
         color={config.color}
         transparent
-        opacity={0.23}
+        opacity={0.1}
         depthTest
         depthWrite={false}
       />
@@ -345,10 +395,8 @@ function Connection({
   );
 }
 
-function easeInOutQuart(value: number) {
-  return value < 0.5
-    ? 8 * value * value * value * value
-    : 1 - Math.pow(-2 * value + 2, 4) / 2;
+function cinematicEase(value: number) {
+  return value * value * value * (value * (value * 6 - 15) + 10);
 }
 
 function HolographicGraph(props: SceneProps) {
@@ -358,6 +406,7 @@ function HolographicGraph(props: SceneProps) {
     focusedId,
     selectedId,
     phase,
+    motionState,
     onHover,
     onSelect,
     onTransitionComplete,
@@ -394,6 +443,15 @@ function HolographicGraph(props: SceneProps) {
   );
   const highlightedId = hoveredId ?? focusedId;
 
+  useLayoutEffect(() => {
+    const overviewZ = isMobile ? 7.7 : 11.5;
+    animationVectors.current.overviewCamera.set(0, 0, overviewZ);
+    if (phase === "overview") {
+      camera.position.copy(animationVectors.current.overviewCamera);
+      camera.lookAt(0, 0, 0);
+    }
+  }, [camera, isMobile, phase]);
+
   useEffect(() => {
     completionSent.current = false;
     if (phase === "detail") progress.current = 1;
@@ -401,7 +459,7 @@ function HolographicGraph(props: SceneProps) {
   }, [phase, selectedId]);
 
   useFrame((_, delta) => {
-    const duration = reducedMotion ? 0.2 : 1.55;
+    const duration = reducedMotion ? 0.2 : SCENE_MOTION.transitionSeconds;
 
     if (phase === "entering") {
       progress.current = Math.min(1, progress.current + delta / duration);
@@ -409,7 +467,7 @@ function HolographicGraph(props: SceneProps) {
       progress.current = Math.max(0, progress.current - delta / duration);
     }
 
-    const eased = easeInOutQuart(progress.current);
+    const eased = cinematicEase(progress.current);
     const target = selectedId ? positions.current[selectedId] : null;
     const vectors = animationVectors.current;
 
@@ -480,6 +538,7 @@ function HolographicGraph(props: SceneProps) {
           highlightedId={highlightedId}
           selectedId={selectedId}
           phase={phase}
+          motionState={motionState}
           transitionProgress={progress}
           onHover={onHover}
           onSelect={onSelect}
